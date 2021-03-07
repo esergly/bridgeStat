@@ -19,7 +19,7 @@ def prepare_db():
     for each in ["REST", "SOAP", "B50"]:
         with con:
             con.execute("""
-            CREATE TABLE {0} (
+                CREATE TABLE {0} (
                 id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                 date TEXT NOT NULL,
                 node_id INTEGER NOT NULL,
@@ -62,7 +62,7 @@ def insert_counters_in_db(lst):
         con.executemany(sql_insert, data)
 
 
-def main():
+def main_order():
     """
     :return:
     """
@@ -101,6 +101,6 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main_order()
 
 _VERSION_ = "0.1"

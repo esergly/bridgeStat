@@ -7,4 +7,4 @@ import work_with_db
 
 if __name__ == '__main__':
     print("Hello! \U0001F504")
-    work_with_db.main()
+    work_with_db.main_order()
