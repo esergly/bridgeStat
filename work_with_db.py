@@ -1,3 +1,4 @@
+##!/usr/bin/env python3
 """
 docstring
 """
@@ -5,6 +6,7 @@ docstring
 import datetime
 import os
 import sqlite3
+import sys
 
 from tqdm import tqdm
 
@@ -14,7 +16,12 @@ def prepare_db():
     :return:
     """
     if os.path.exists("counts_db.db"):
-        os.remove("counts_db.db")
+        try:
+            os.remove("counts_db.db")
+        except PermissionError:
+            print("\U000026A0 The process cannot access the file because it is "
+                  "being used by another process \U000026A0")
+            sys.exit()
     con = sqlite3.connect('counts_db.db')
     for each in ["REST", "SOAP", "B50"]:
         with con:
@@ -66,24 +73,21 @@ def main_order():
     """
     :return:
     """
-    print("Please wait until working DB will be created!")
+    print("Please wait until working DB will be created! \U000023F3")
     prepare_db()
-    count = 1
     for _ in range(1, 6):
         rest, soap, b50 = ["rest"], ["soap"], ["b50"]
         with open(f'itbr{_}_healthcheck.log', 'r', encoding='utf-8') as file:
-            rest.append(count)
-            soap.append(count)
-            b50.append(count)
-            for _item in tqdm(range(os.path.getsize(f'itbr{_}_healthcheck.log') // 512)):
+            for lst in (rest, soap, b50):
+                lst.append(_)
+            for _item in tqdm(range(os.path.getsize(f'itbr{_}_healthcheck.log') // 1048576)):
                 for line in file:
                     if "Start executing" in line:
                         trap = line[41:56] + line[-13:-7]
                         _ = datetime.datetime.strptime(trap.strip(' \t\r\n'), '%b %d %H:%M:%S %Y')
-                        str_time = datetime.datetime.strftime(_, '%Y-%m-%d %H:%M:%S')
-                        rest.append(str_time)
-                        soap.append(str_time)
-                        b50.append(str_time)
+                        str_time = datetime.datetime.strftime(_, '%Y-%m-%d %H:%M')
+                        for lst in (rest, soap, b50):
+                            lst.append(str_time)
                     elif 'r p="29' in line or 'r p="30' in line \
                             or 'r p="31' in line or 'r p="32' in line:
                         rest.append(int(line[26:-5]))
@@ -93,10 +97,8 @@ def main_order():
                     elif 'r p="1"' in line or 'r p="2"' in line \
                             or 'r p="3"' in line or 'r p="4"' in line:
                         b50.append(int(line[25:-5]))
-        count += 1
-        insert_counters_in_db(rest)
-        insert_counters_in_db(soap)
-        insert_counters_in_db(b50)
+        for each in (rest, soap, b50):
+            insert_counters_in_db(each)
     print("The DB is ready to be using.")
 
 
